@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: talos-state-metrics
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: talos-state-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: talos-state-metrics
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: talos-state-metrics
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: talos-state-metrics
+          image: ghcr.io/benturnkey/talos-state-metrics:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: LISTEN_ADDR
+              value: ":8080"
+            - name: TALOS_ENDPOINT
+              value: "127.0.0.1"
+            - name: TALOS_CONFIG
+              value: /var/run/talos/config
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          volumeMounts:
+            - name: talos-reader-config
+              mountPath: /var/run/talos
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: talos-reader-config
+          secret:
+            secretName: talos-state-metrics-reader

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: talos-state-metrics
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: talos-state-metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: talos-state-metrics
+  podMetricsEndpoints:
+  - port: http
+    path: /metrics
+    interval: 15s

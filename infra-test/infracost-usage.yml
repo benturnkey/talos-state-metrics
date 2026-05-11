@@ -1,0 +1,8 @@
+# Usage file for Infracost to estimate data transfer and other usage-based costs
+version: 0.1
+resource_usage:
+  module.vpc.aws_instance.this:
+    monthly_cpu_utilization: 20
+  module.talos_workers.aws_autoscaling_group.this:
+    instances: 3
+    monthly_cpu_utilization: 10

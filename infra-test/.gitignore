@@ -1,0 +1,6 @@
+.tmp.*
+talos_secrets.yaml
+talosconfig.yaml
+kubeconfig.yaml
+terraform/.terraform/
+terraform/plan.out

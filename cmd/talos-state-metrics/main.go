@@ -47,7 +47,7 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *
 	manager := &watch.Manager{
 		Snapshot: snapshot,
 		Factory: func() eventsource.Source {
-			src := taloseventsource.New(cfg.TalosEndpoint, cfg.TalosConfigPath)
+			src := taloseventsource.New(cfg.TalosEndpoint, cfg.TalosConfigPath, cfg.FullSyncInterval)
 			src.Logger = logger
 			return src
 		},
@@ -84,8 +84,11 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *
 	})
 
 	group.Go(func() error {
+		// When any critical goroutine fails or the process receives a shutdown signal,
+		// stop accepting new HTTP work and give in-flight requests a bounded drain window.
 		<-groupCtx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.MaxBackoff)
+		logger.Info("shutting down http server", "timeout", cfg.ShutdownTimeout)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 		defer cancel()
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			logger.Warn("http server shutdown failed", "err", err)

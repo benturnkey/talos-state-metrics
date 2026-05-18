@@ -26,7 +26,7 @@ func Render(snapshot state.Data) string {
 		sort.Strings(ids)
 		for _, id := range ids {
 			peer := snapshot.Peers[id]
-			if peer.LastHandshake == nil {
+			if peer.LastHandshake.IsZero() {
 				continue
 			}
 			fmt.Fprintf(&b, "talos_kubespan_peer_last_handshake_seconds{peer_id=\"%s\"", escapeLabelValue(peer.ID))

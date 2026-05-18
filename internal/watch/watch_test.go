@@ -9,7 +9,7 @@ import (
 	"github.com/benturnkey/talos-state-metrics/internal/state"
 )
 
-func TestManagerMarksReadyOnlyAfterWatchBootstrap(t *testing.T) {
+func TestManagerMarksReadyOnlyAfterInitialFullSync(t *testing.T) {
 	snapshot := state.NewSnapshot()
 	src := &fakeSource{
 		events: make(chan eventsource.Event, 2),
@@ -32,11 +32,62 @@ func TestManagerMarksReadyOnlyAfterWatchBootstrap(t *testing.T) {
 
 	time.Sleep(20 * time.Millisecond)
 	if snapshot.Ready() {
-		t.Fatalf("snapshot should stay unready before the watch bootstraps")
+		t.Fatalf("snapshot should stay unready before the initial full sync")
 	}
 
-	src.events <- eventsource.Event{Type: eventsource.EventBootstrap, At: time.Unix(100, 0).UTC()}
+	src.events <- eventsource.Event{Type: eventsource.EventFullSync, At: time.Unix(100, 0).UTC()}
 	waitFor(t, time.Second, snapshot.Ready)
+
+	cancel()
+	<-done
+}
+
+func TestManagerWaitsForFullSyncBeforeReadyAfterPeerEvents(t *testing.T) {
+	snapshot := state.NewSnapshot()
+	src := &fakeSource{
+		events: make(chan eventsource.Event, 3),
+		errs:   make(chan error, 1),
+	}
+
+	manager := &Manager{
+		Snapshot: snapshot,
+		Factory:  func() eventsource.Source { return src },
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		manager.Run(ctx)
+	}()
+
+	handshake := time.Unix(100, 0).UTC()
+	src.events <- eventsource.Event{
+		Type: eventsource.EventPeerUpsert,
+		Peer: eventsource.Peer{ID: "peer-a", LastHandshake: handshake},
+		At:   handshake,
+	}
+
+	time.Sleep(20 * time.Millisecond)
+	if snapshot.Ready() {
+		t.Fatalf("snapshot should stay unready until full sync completes")
+	}
+
+	src.events <- eventsource.Event{
+		Type: eventsource.EventFullSync,
+		Peers: []eventsource.Peer{
+			{ID: "peer-a", LastHandshake: handshake},
+		},
+		At: handshake.Add(time.Second),
+	}
+	waitFor(t, time.Second, snapshot.Ready)
+
+	snap := snapshot.Copy()
+	if len(snap.Peers) != 1 {
+		t.Fatalf("expected full sync to establish one peer, got %d peers", len(snap.Peers))
+	}
 
 	cancel()
 	<-done
@@ -66,11 +117,12 @@ func TestManagerClearsPeerStateAcrossDisconnect(t *testing.T) {
 	}()
 
 	handshake := time.Unix(101, 0).UTC()
-	src.events <- eventsource.Event{Type: eventsource.EventBootstrap, At: handshake}
 	src.events <- eventsource.Event{
-		Type: eventsource.EventPeerUpsert,
-		Peer: eventsource.Peer{ID: "peer-a", LastHandshake: &handshake},
-		At:   handshake,
+		Type: eventsource.EventFullSync,
+		Peers: []eventsource.Peer{
+			{ID: "peer-a", LastHandshake: handshake},
+		},
+		At: handshake,
 	}
 	waitFor(t, time.Second, snapshot.Ready)
 

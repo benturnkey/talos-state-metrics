@@ -20,7 +20,7 @@ func TestPeerFromStatusUsesLabelAndHandshake(t *testing.T) {
 	if peer.Label != "node-a" {
 		t.Fatalf("expected peer label, got %q", peer.Label)
 	}
-	if peer.LastHandshake == nil || !peer.LastHandshake.Equal(handshake) {
+	if !peer.LastHandshake.Equal(handshake) {
 		t.Fatalf("expected handshake %s, got %#v", handshake, peer.LastHandshake)
 	}
 }

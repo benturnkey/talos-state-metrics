@@ -7,20 +7,24 @@ import (
 )
 
 type Config struct {
-	ListenAddr      string
-	TalosEndpoint   string
-	TalosConfigPath string
-	MinBackoff      time.Duration
-	MaxBackoff      time.Duration
+	ListenAddr       string
+	TalosEndpoint    string
+	TalosConfigPath  string
+	FullSyncInterval time.Duration
+	ShutdownTimeout  time.Duration
+	MinBackoff       time.Duration
+	MaxBackoff       time.Duration
 }
 
 func FromEnv() Config {
 	return Config{
-		ListenAddr:      env("LISTEN_ADDR", ":8080"),
-		TalosEndpoint:   env("TALOS_ENDPOINT", "127.0.0.1"),
-		TalosConfigPath: env("TALOS_CONFIG", "/var/run/talos/config"),
-		MinBackoff:      durationEnv("WATCH_MIN_BACKOFF_SECONDS", time.Second),
-		MaxBackoff:      durationEnv("WATCH_MAX_BACKOFF_SECONDS", 30*time.Second),
+		ListenAddr:       env("LISTEN_ADDR", ":8080"),
+		TalosEndpoint:    env("TALOS_ENDPOINT", "127.0.0.1"),
+		TalosConfigPath:  env("TALOS_CONFIG", "/var/run/talos/config"),
+		FullSyncInterval: durationEnv("FULL_SYNC_INTERVAL_SECONDS", 15*time.Minute),
+		ShutdownTimeout:  durationEnv("SHUTDOWN_TIMEOUT_SECONDS", 30*time.Second),
+		MinBackoff:       durationEnv("WATCH_MIN_BACKOFF_SECONDS", time.Second),
+		MaxBackoff:       durationEnv("WATCH_MAX_BACKOFF_SECONDS", 30*time.Second),
 	}
 }
 

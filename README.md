@@ -4,6 +4,8 @@
 
 Status: initial implementation. The HTTP server, snapshot model, Talos KubeSpan watch integration, metrics rendering, readiness behavior, tests, and Kubernetes examples are present.
 
+At startup, the exporter loads the current full peer set from the Talos watch bootstrap before serving ready. It also performs a periodic full peer resync on a long interval so missed deletes or other watch drift are repaired by replacing the in-memory peer set with a fresh list from Talos.
+
 ## Metrics
 
 - `talos_kubespan_peer_count`: gauge with the number of peers in the local snapshot.
@@ -31,6 +33,7 @@ Useful environment variables:
 - `LISTEN_ADDR`: HTTP listen address, default `:8080`.
 - `TALOS_ENDPOINT`: local Talos API endpoint, default `127.0.0.1`.
 - `TALOS_CONFIG`: mounted Talos client config path, default `/var/run/talos/config`.
+- `FULL_SYNC_INTERVAL_SECONDS`: full peer resync interval, default `900`.
 - `WATCH_MIN_BACKOFF_SECONDS`: reconnect backoff floor, default `1`.
 - `WATCH_MAX_BACKOFF_SECONDS`: reconnect backoff ceiling, default `30`.
 

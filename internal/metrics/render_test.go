@@ -14,7 +14,7 @@ func TestRenderIncludesPeerCountHandshakeAndWatchState(t *testing.T) {
 	lastEvent := time.Unix(1234, 0).UTC()
 	handshake := time.Unix(1200, 0).UTC()
 	s.SetConnected(true, lastEvent)
-	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", Label: "node-a", LastHandshake: &handshake}, At: lastEvent})
+	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", Label: "node-a", LastHandshake: handshake}, At: lastEvent})
 	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-b"}, At: lastEvent})
 
 	got := Render(s.Copy())
@@ -38,7 +38,7 @@ func TestRenderEscapesPeerLabels(t *testing.T) {
 	s := state.NewSnapshot()
 	handshake := time.Unix(10, 0).UTC()
 	s.SetConnected(true, handshake)
-	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer\\\"a", Label: "node\\\"a", LastHandshake: &handshake}, At: handshake})
+	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer\\\"a", Label: "node\\\"a", LastHandshake: handshake}, At: handshake})
 
 	got := Render(s.Copy())
 	if !strings.Contains(got, `peer_id="peer\\\"a",peer_label="node\\\"a"`) {
@@ -50,7 +50,7 @@ func TestRenderOmitsPeerLabelWhenUnset(t *testing.T) {
 	s := state.NewSnapshot()
 	handshake := time.Unix(10, 0).UTC()
 	s.SetConnected(true, handshake)
-	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", LastHandshake: &handshake}, At: handshake})
+	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", LastHandshake: handshake}, At: handshake})
 
 	got := Render(s.Copy())
 	if !strings.Contains(got, `talos_kubespan_peer_last_handshake_seconds{peer_id="peer-a"} 10`) {
@@ -65,7 +65,7 @@ func TestRenderOmitsPeerDerivedMetricsWhenDisconnected(t *testing.T) {
 	s := state.NewSnapshot()
 	handshake := time.Unix(10, 0).UTC()
 	s.SetConnected(true, handshake)
-	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", Label: "node-a", LastHandshake: &handshake}, At: handshake})
+	s.Apply(eventsource.Event{Type: eventsource.EventPeerUpsert, Peer: eventsource.Peer{ID: "peer-a", Label: "node-a", LastHandshake: handshake}, At: handshake})
 	s.SetConnected(false, handshake.Add(time.Second))
 
 	got := Render(s.Copy())

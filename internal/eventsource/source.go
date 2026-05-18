@@ -8,7 +8,7 @@ import (
 type EventType string
 
 const (
-	EventBootstrap  EventType = "bootstrap"
+	EventFullSync   EventType = "full_sync"
 	EventPeerUpsert EventType = "peer_upsert"
 	EventPeerDelete EventType = "peer_delete"
 )
@@ -16,13 +16,14 @@ const (
 type Peer struct {
 	ID            string
 	Label         string
-	LastHandshake *time.Time
+	LastHandshake time.Time
 }
 
 type Event struct {
-	Type EventType
-	Peer Peer
-	At   time.Time
+	Type  EventType
+	Peer  Peer
+	Peers []Peer
+	At    time.Time
 }
 
 type Source interface {

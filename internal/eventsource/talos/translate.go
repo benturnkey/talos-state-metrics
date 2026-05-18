@@ -7,16 +7,11 @@ import (
 	taloskubespan "github.com/siderolabs/talos/pkg/machinery/resources/kubespan"
 )
 
-func bootstrapEvent() eventsource.Event {
-	return eventsource.Event{Type: eventsource.EventBootstrap, At: time.Now().UTC()}
-}
-
 func peerFromStatus(peerStatus *taloskubespan.PeerStatus) eventsource.Peer {
 	peer := deletePeerFromStatus(peerStatus)
 	lastHandshake := peerStatus.TypedSpec().LastHandshakeTime
 	if !lastHandshake.IsZero() {
-		handshake := lastHandshake.UTC()
-		peer.LastHandshake = &handshake
+		peer.LastHandshake = lastHandshake.UTC()
 	}
 
 	return peer

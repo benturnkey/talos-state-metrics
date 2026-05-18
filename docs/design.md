@@ -41,16 +41,17 @@ Kubernetes node identity should come from Prometheus scrape target metadata such
 The exporter uses a watch-first design:
 
 1. Establish a Talos watch for the local node's KubeSpan peer resource.
-2. Mark readiness true only after the watch has produced a bootstrap or resource event.
+2. Load the current full peer set from the watch bootstrap before marking readiness true.
 3. Apply add/update/delete events to the in-memory snapshot.
+4. Periodically relist the full peer set and replace the snapshot contents to repair drift.
 
-The Talos source watches local KubeSpan peer status resources through the Talos machinery client and converts bootstrap, upsert, and delete events into the exporter snapshot model. The watch manager does not mark readiness until that stream has emitted a real event, so the exporter only serves ready after it has observed real watch data.
+The Talos source watches local KubeSpan peer status resources through the Talos machinery client and converts the bootstrapped startup set into a full-sync event, then follows with upsert, delete, and periodic full-sync events. The watch manager does not mark readiness until the initial full-sync barrier has arrived, so the exporter only serves ready after it has the complete startup peer set.
 
 ## Failure Scenarios
 
 The exporter is expected to fail closed for peer-derived metrics rather than continue serving stale or misleading data.
 
-- Before the watch has produced its first bootstrap or resource event, readiness remains false.
+- Before the watch has produced its first full-sync event, readiness remains false.
 - If the watch disconnects or returns an error after becoming ready, readiness flips false and peer-state metrics stop being reported.
 - If the Talos API is unavailable, authentication fails, or the watch cannot be established, the exporter keeps retrying with bounded exponential backoff.
 - While disconnected or reconnecting, `talos_state_metrics_watch_connected` reports `0` and `talos_state_metrics_last_event_timestamp_seconds` reflects the latest event or connection state transition.

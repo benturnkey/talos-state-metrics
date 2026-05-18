@@ -34,7 +34,14 @@ func (s *Snapshot) Apply(event eventsource.Event) {
 
 	s.lastEvent = event.At
 	switch event.Type {
-	case eventsource.EventBootstrap:
+	case eventsource.EventFullSync:
+		s.peers = make(map[string]eventsource.Peer, len(event.Peers))
+		for _, peer := range event.Peers {
+			if peer.ID == "" {
+				continue
+			}
+			s.peers[peer.ID] = clonePeer(peer)
+		}
 		return
 	case eventsource.EventPeerUpsert:
 		if event.Peer.ID == "" {
@@ -84,9 +91,8 @@ func (s *Snapshot) Copy() Data {
 
 func clonePeer(peer eventsource.Peer) eventsource.Peer {
 	cloned := eventsource.Peer{ID: peer.ID, Label: peer.Label}
-	if peer.LastHandshake != nil {
-		handshake := *peer.LastHandshake
-		cloned.LastHandshake = &handshake
+	if !peer.LastHandshake.IsZero() {
+		cloned.LastHandshake = peer.LastHandshake
 	}
 	return cloned
 }

@@ -42,9 +42,10 @@ func (m *Manager) Run(ctx context.Context) {
 }
 
 // consume processes one watch session until the source closes, reports an error,
-// or the caller cancels the context. The first event, including bootstrap, marks
-// the snapshot connected so readiness only flips after the source has delivered
-// real watch data rather than after watch setup alone.
+// or the caller cancels the context. The session is considered connected only
+// after the source emits a full-sync event, which acts as the barrier that says
+// the initial complete peer set is now known. That keeps startup unready until
+// the initial full peer set has been delivered.
 func (m *Manager) consume(ctx context.Context, events <-chan eventsource.Event, errs <-chan error) (bool, error) {
 	connected := false
 
@@ -56,11 +57,11 @@ func (m *Manager) consume(ctx context.Context, events <-chan eventsource.Event, 
 			if !ok {
 				return connected, nil
 			}
-			if !connected {
+			m.Snapshot.Apply(event)
+			if !connected && marksConnected(event.Type) {
 				m.Snapshot.SetConnected(true, event.At)
 				connected = true
 			}
-			m.Snapshot.Apply(event)
 		case err, ok := <-errs:
 			if !ok {
 				errs = nil
@@ -71,6 +72,10 @@ func (m *Manager) consume(ctx context.Context, events <-chan eventsource.Event, 
 			}
 		}
 	}
+}
+
+func marksConnected(eventType eventsource.EventType) bool {
+	return eventType == eventsource.EventFullSync
 }
 
 func (m *Manager) minBackoff() time.Duration {

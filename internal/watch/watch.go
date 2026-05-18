@@ -9,6 +9,11 @@ import (
 	"github.com/benturnkey/talos-state-metrics/internal/state"
 )
 
+const (
+	defaultMinBackoff = time.Second
+	defaultMaxBackoff = 30 * time.Second
+)
+
 type Manager struct {
 	Snapshot   *state.Snapshot
 	Factory    eventsource.Factory
@@ -35,8 +40,10 @@ func (m *Manager) Run(ctx context.Context) {
 
 		m.Snapshot.SetConnected(false, time.Now().UTC())
 		backoff = m.nextBackoff(backoff, connected)
-		if !sleep(ctx, backoff) {
+		select {
+		case <-ctx.Done():
 			return
+		case <-time.After(backoff):
 		}
 	}
 }
@@ -82,14 +89,14 @@ func (m *Manager) minBackoff() time.Duration {
 	if m.MinBackoff > 0 {
 		return m.MinBackoff
 	}
-	return time.Second
+	return defaultMinBackoff
 }
 
 func (m *Manager) maxBackoff() time.Duration {
 	if m.MaxBackoff > 0 {
 		return m.MaxBackoff
 	}
-	return 30 * time.Second
+	return defaultMaxBackoff
 }
 
 func (m *Manager) nextBackoff(current time.Duration, connected bool) time.Duration {
@@ -103,15 +110,4 @@ func (m *Manager) nextBackoff(current time.Duration, connected bool) time.Durati
 	}
 
 	return next
-}
-
-func sleep(ctx context.Context, duration time.Duration) bool {
-	timer := time.NewTimer(duration)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return false
-	case <-timer.C:
-		return true
-	}
 }

@@ -38,11 +38,11 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *state.Snapshot) error {
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+func run(parentCtx context.Context, cfg config.Config, logger *slog.Logger, snapshot *state.Snapshot) error {
+	baseCtx, stop := signal.NotifyContext(parentCtx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	group, groupCtx := errgroup.WithContext(ctx)
+	group, ctx := errgroup.WithContext(baseCtx)
 
 	manager := &watch.Manager{
 		Snapshot: snapshot,
@@ -75,8 +75,8 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *
 		IdleTimeout:       httpIdleTimeout,
 	}
 	group.Go(func() error {
-		manager.Run(groupCtx)
-		if groupCtx.Err() != nil {
+		manager.Run(ctx)
+		if ctx.Err() != nil {
 			return nil
 		}
 
@@ -86,7 +86,7 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *
 	group.Go(func() error {
 		// When any critical goroutine fails or the process receives a shutdown signal,
 		// stop accepting new HTTP work and give in-flight requests a bounded drain window.
-		<-groupCtx.Done()
+		<-ctx.Done()
 		logger.Info("shutting down http server", "timeout", cfg.ShutdownTimeout)
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 		defer cancel()
@@ -101,7 +101,7 @@ func run(ctx context.Context, cfg config.Config, logger *slog.Logger, snapshot *
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			return fmt.Errorf("http server failed: %w", err)
 		}
-		if groupCtx.Err() != nil {
+		if ctx.Err() != nil {
 			return nil
 		}
 

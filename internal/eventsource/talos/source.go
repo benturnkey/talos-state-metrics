@@ -58,7 +58,7 @@ func (s *Source) Watch(ctx context.Context) (<-chan eventsource.Event, <-chan er
 
 		st, client, err := s.openState(watchCtx)
 		if err != nil {
-			errs <- err
+			errs <- fmt.Errorf("open talos watch state: %w", err)
 
 			return
 		}

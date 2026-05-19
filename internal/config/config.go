@@ -20,7 +20,7 @@ func FromEnv() Config {
 	return Config{
 		ListenAddr:       env("LISTEN_ADDR", ":8080"),
 		TalosEndpoint:    env("TALOS_ENDPOINT", "127.0.0.1"),
-		TalosConfigPath:  env("TALOS_CONFIG", "/var/run/talos/config"),
+		TalosConfigPath:  env("TALOS_CONFIG", "/var/run/secrets/talos.dev/config"),
 		FullSyncInterval: durationEnv("FULL_SYNC_INTERVAL_SECONDS", 15*time.Minute),
 		ShutdownTimeout:  durationEnv("SHUTDOWN_TIMEOUT_SECONDS", 30*time.Second),
 		MinBackoff:       durationEnv("WATCH_MIN_BACKOFF_SECONDS", time.Second),

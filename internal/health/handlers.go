@@ -3,7 +3,7 @@ package health
 import (
 	"net/http"
 
-	"github.com/benturnkey/talos-state-metrics/internal/state"
+	"github.com/tkhq/talos-state-metrics/internal/state"
 )
 
 func Healthz() http.Handler {

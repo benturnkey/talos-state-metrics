@@ -4,7 +4,7 @@
 
 - Export Talos KubeSpan peer metrics for each Talos node.
 - Run as a small Go binary in a Kubernetes DaemonSet with one pod per node.
-- Authenticate to the local Talos API with a mounted client config and certificates using the Talos RBAC role `os:reader`.
+- Authenticate to the local Talos API using credentials issued by the [Talos `ServiceAccount` CRD](https://github.com/tkhq/gitops/blob/main/apps/talos-crds/talos-service-account-crd.yaml) with the role `os:reader`.
 - Keep metric labels conservative and avoid exposing public keys, endpoints, or redundant node labels.
 
 ## Non-Goals
@@ -22,7 +22,7 @@ The Talos-specific code is isolated in `internal/eventsource/talos`. It uses the
 
 ## Authentication
 
-The runtime expects a Talos client config mounted at `/var/run/talos/config` by default. That config should contain certificates generated for the Talos RBAC role `os:reader`, giving read-only access to the local node resources needed for KubeSpan peer state.
+Client credentials are issued by the [Talos `ServiceAccount` CRD (`talos.dev/v1alpha1`)](https://github.com/tkhq/gitops/blob/main/apps/talos-crds/talos-service-account-crd.yaml). The exporter's manifests declare a `ServiceAccount` resource with `spec.roles: [os:reader]`, and Talos's in-cluster controller writes a Kubernetes Secret of the same name containing a complete talosconfig. The DaemonSet mounts that Secret at the Talos-standard path `/var/run/secrets/talos.dev/`, and the exporter loads the talosconfig from `/var/run/secrets/talos.dev/config` (`TALOS_CONFIG` default). Talos rotates the certificates automatically, so there is no operator-managed cert lifecycle.
 
 The DaemonSet uses `hostNetwork: true` and defaults `TALOS_ENDPOINT` to `127.0.0.1`, so the exporter talks to the node-local Talos API from the host network namespace.
 

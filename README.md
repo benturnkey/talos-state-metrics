@@ -18,7 +18,7 @@ Kubernetes node identity should be attached at scrape time from target metadata 
 
 ## Authentication
 
-The DaemonSet expects a mounted Talos client config and certificates with the Talos RBAC role `os:reader`. Generate a least-privileged Talos client configuration following the Talos RBAC documentation, confirm it can read local node resources, and store it in a Kubernetes Secret.
+The DaemonSet provisions client credentials through the [Talos `ServiceAccount` CRD (`talos.dev/v1alpha1`)](https://github.com/tkhq/gitops/blob/main/apps/talos-crds/talos-service-account-crd.yaml) with the role `os:reader`. The in-cluster Talos controller watches that resource and issues a Kubernetes Secret containing a complete talosconfig, which the DaemonSet mounts at `/var/run/secrets/talos.dev/config`. Certificates are rotated by Talos; no operator action is required after the initial manifest is applied.
 
 
 ## Local Run
@@ -32,7 +32,7 @@ Useful environment variables:
 
 - `LISTEN_ADDR`: HTTP listen address, default `:8080`.
 - `TALOS_ENDPOINT`: local Talos API endpoint, default `127.0.0.1`.
-- `TALOS_CONFIG`: mounted Talos client config path, default `/var/run/talos/config`.
+- `TALOS_CONFIG`: mounted Talos client config path, default `/var/run/secrets/talos.dev/config`.
 - `FULL_SYNC_INTERVAL_SECONDS`: full peer resync interval, default `900`.
 - `WATCH_MIN_BACKOFF_SECONDS`: reconnect backoff floor, default `1`.
 - `WATCH_MAX_BACKOFF_SECONDS`: reconnect backoff ceiling, default `30`.

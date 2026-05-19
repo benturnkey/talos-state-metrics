@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/state"
+	"github.com/tkhq/talos-state-metrics/internal/state"
 )
 
 func TestHealthzAlwaysReturnsOK(t *testing.T) {

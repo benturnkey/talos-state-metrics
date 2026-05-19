@@ -1,4 +1,4 @@
-module github.com/benturnkey/talos-state-metrics
+module github.com/tkhq/talos-state-metrics
 
 go 1.26.1
 

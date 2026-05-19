@@ -10,13 +10,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/config"
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
-	taloseventsource "github.com/benturnkey/talos-state-metrics/internal/eventsource/talos"
-	"github.com/benturnkey/talos-state-metrics/internal/health"
-	"github.com/benturnkey/talos-state-metrics/internal/metrics"
-	"github.com/benturnkey/talos-state-metrics/internal/state"
-	"github.com/benturnkey/talos-state-metrics/internal/watch"
+	"github.com/tkhq/talos-state-metrics/internal/config"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
+	taloseventsource "github.com/tkhq/talos-state-metrics/internal/eventsource/talos"
+	"github.com/tkhq/talos-state-metrics/internal/health"
+	"github.com/tkhq/talos-state-metrics/internal/metrics"
+	"github.com/tkhq/talos-state-metrics/internal/state"
+	"github.com/tkhq/talos-state-metrics/internal/watch"
 	"golang.org/x/sync/errgroup"
 )
 

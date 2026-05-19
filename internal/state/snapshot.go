@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
 )
 
 type Data struct {

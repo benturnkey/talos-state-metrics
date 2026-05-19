@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
-	"github.com/benturnkey/talos-state-metrics/internal/state"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
+	"github.com/tkhq/talos-state-metrics/internal/state"
 )
 
 func TestManagerMarksReadyOnlyAfterInitialFullSync(t *testing.T) {

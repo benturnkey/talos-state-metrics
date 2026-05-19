@@ -3,7 +3,7 @@ package talos
 import (
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
 	taloskubespan "github.com/siderolabs/talos/pkg/machinery/resources/kubespan"
 )
 

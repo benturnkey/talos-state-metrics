@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/state"
+	"github.com/tkhq/talos-state-metrics/internal/state"
 )
 
 func Render(snapshot state.Data) string {

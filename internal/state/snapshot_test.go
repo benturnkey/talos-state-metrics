@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
 )
 
 func TestSnapshotAppliesPeerAddUpdateAndDelete(t *testing.T) {

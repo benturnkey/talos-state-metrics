@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/benturnkey/talos-state-metrics/internal/eventsource"
+	"github.com/tkhq/talos-state-metrics/internal/eventsource"
 	cosiresource "github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
 	cosistate "github.com/cosi-project/runtime/pkg/state"
